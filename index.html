@@ -1210,15 +1210,22 @@
     return "data:image/svg+xml;base64," + btoa(svg);
   }
   async function incrementStat(promptId, field) {
-    // Calls a Cloud Function HTTP endpoint. If functions are not deployed
-    // yet, this silently fails so the UX does not break.
+    // Increment the counter directly in Firebase via the SDK.
+    // Uses transaction() for atomic increment (handles concurrent writes
+    // correctly — no race conditions). The database rules are public
+    // (".write": true) so this works without Cloud Functions.
+    if (!db || !promptId || !field) return;
     try {
-      await fetch("/api/incrementStat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promptId, field, deviceToken: getDeviceToken() })
-      });
-    } catch (e) { console.debug("[stat] failed:", e); }
+      // Increment the per-prompt counter
+      const ref = db.ref(`PROMPT_MANAGER/prompts_public/${promptId}/${field}`);
+      await ref.transaction(cur => (typeof cur === "number" ? cur + 1 : 1));
+      // Also increment the aggregate counter (e.g. totalViews / totalCopies)
+      const aggKey = "total" + field.charAt(0).toUpperCase() + field.slice(1);
+      const aggRef = db.ref(`PROMPT_MANAGER/statistics/${aggKey}`);
+      await aggRef.transaction(cur => (typeof cur === "number" ? cur + 1 : 1)).catch(() => {});
+    } catch (e) {
+      console.debug("[stat] failed to increment:", field, e);
+    }
   }
 
   /* ==================================================================
@@ -1890,6 +1897,11 @@
   function openDetailModal(promptId) {
     const p = State.prompts.find(x => x.id === promptId);
     if (!p) return showToast("Prompt not found.", "error");
+    // Increment view counter FIRST (optimistic local + Firebase transaction)
+    // so the modal HTML below shows the updated count immediately.
+    incrementStat(p.id, "views");
+    p.views = (p.views || 0) + 1;
+
     const cat = State.categories.find(c => c.id === p.categoryId);
     const catName = cat ? cat.name : "Uncategorized";
     const thumb = renderThumbElement(p.thumbnail, p.title);
@@ -1923,8 +1935,6 @@
     $$(".related-prompt", $("#detailBody")).forEach(el => el.addEventListener("click", () => {
       const id = el.dataset.rel; closeDetailModal(); openDetailModal(id);
     }));
-    incrementStat(p.id, "views");
-    p.views = (p.views || 0) + 1;
     $("#detailOverlay").classList.add("active");
     document.body.style.overflow = "hidden";
   }
