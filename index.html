@@ -153,6 +153,8 @@
       box-shadow: var(--shadow-lg); animation: modal-in .25s ease;
     }
     .modal.modal-lg { max-width: 920px; }
+    /* Detail (View button) popup — narrower at 384px wide */
+    #detailOverlay .modal { max-width: 384px; }
     @keyframes modal-in {
       from { opacity: 0; transform: translateY(20px) scale(.96); }
       to { opacity: 1; transform: translateY(0) scale(1); }
@@ -301,9 +303,24 @@
        each card auto-adjusts to fill its container (object-fit: cover). */
     .prompts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
     .prompts-grid.list-view { grid-template-columns: 1fr; }
-    .prompts-grid.list-view .prompt-card { display: grid; grid-template-columns: 160px 1fr auto; gap: 18px; padding: 14px; }
-    .prompts-grid.list-view .prompt-thumb { height: 100%; min-height: 120px; }
-    .prompts-grid.list-view .prompt-actions { flex-direction: column; align-self: center; }
+    /* List view: 190px fixed-height row. Grid: 190px thumbnail (square) | 1fr content | auto actions.
+       We use `display: contents` on the body so its children become direct
+       grid items of the card — then we explicitly place each one in the
+       right grid cell. Title goes in the middle column (visible), actions
+       go in the right column (vertically centered).
+       Card padding is 0 so the thumbnail can fill the full 190×190 square
+       (no padding subtracted from the height). Internal margins are added
+       to body content + actions instead so they don't touch the card edges. */
+    .prompts-grid.list-view .prompt-card { display: grid; grid-template-columns: 190px 1fr auto; gap: 14px; padding: 0; height: 190px; overflow: hidden; }
+    .prompts-grid.list-view .prompt-thumb { height: 190px; min-height: 0; }
+    .prompts-grid.list-view .prompt-body { display: contents; }
+    /* Place body children in the grid + add edge spacing: */
+    .prompts-grid.list-view .prompt-body > .prompt-meta:first-child { grid-column: 2; grid-row: 1; align-self: start; margin-top: 14px; }
+    .prompts-grid.list-view .prompt-body > .prompt-title { grid-column: 2; grid-row: 2; align-self: center; -webkit-line-clamp: 2; }
+    .prompts-grid.list-view .prompt-body > .prompt-desc { display: none; }  /* hide description in list view */
+    .prompts-grid.list-view .prompt-body > .prompt-actions { grid-column: 3; grid-row: 1 / span 2; align-self: center; flex-direction: column; gap: 8px; margin-right: 14px; }
+    .prompts-grid.list-view .prompt-body > .prompt-actions .btn { flex: 0 0 auto; width: auto; min-width: 90px; }
+    .prompts-grid.list-view .prompt-body > .prompt-meta:last-child { grid-column: 2; grid-row: 3; align-self: end; margin-bottom: 14px; }
 
     .prompt-card {
       background: var(--bg-card); border-radius: var(--radius-md); overflow: hidden;
@@ -314,14 +331,14 @@
     }
     .prompt-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
     /* Thumbnail container: 192px tall, fills the card width. Uses flex
-       so the <img> can reliably fill the area with object-fit: cover. */
+       so the <img>/<video> can reliably fill the area with object-fit: cover. */
     .prompt-thumb {
       width: 100%; height: 192px; background: var(--gradient-soft);
       position: relative; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       color: var(--accent-purple); font-size: 2.5rem;
     }
-    .prompt-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .prompt-thumb img, .prompt-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
     .prompt-thumb .lock-overlay { position: absolute; inset: 0; background: rgba(10, 15, 36, .55); display: grid; place-items: center; color: #fff; font-size: 1.6rem; backdrop-filter: blur(2px); }
 
     .prompt-body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; }
@@ -342,7 +359,7 @@
 
     .detail-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
     .detail-thumb { width: 100%; height: 220px; border-radius: var(--radius-md); background: var(--gradient-soft); margin-bottom: 16px; overflow: hidden; display: grid; place-items: center; color: var(--accent-purple); font-size: 3rem; }
-    .detail-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-thumb img, .detail-thumb video { width: 100%; height: 100%; object-fit: cover; }
     .detail-desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .92rem; }
     .detail-stats { display: flex; gap: 16px; padding: 12px 16px; background: var(--bg-main); border-radius: var(--radius-sm); margin-bottom: 16px; font-size: .85rem; color: var(--text-secondary); }
     .detail-stats strong { color: var(--text-primary); font-weight: 700; margin-right: 4px; }
@@ -548,8 +565,9 @@
       .hero h1 { font-size: 1.4rem; }
       /* Mobile: 2-column auto-sized grid (each column stretches to fill) */
       .prompts-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-      .prompts-grid.list-view .prompt-card { grid-template-columns: 90px 1fr; }
-      .prompts-grid.list-view .prompt-actions { grid-column: 1 / -1; flex-direction: row; }
+      .prompts-grid.list-view .prompt-card { grid-template-columns: 90px 1fr auto; height: 140px; }
+      .prompts-grid.list-view .prompt-body > .prompt-actions { flex-direction: column; gap: 6px; }
+      .prompts-grid.list-view .prompt-body > .prompt-actions .btn { min-width: 70px; font-size: .76rem; padding: 6px 10px; }
       .prompt-thumb { height: 120px; }
       .admin-body { grid-template-columns: 1fr; }
       .admin-sidebar { display: none; }
@@ -785,9 +803,16 @@
               <div class="form-grid">
                 <div><label>Prompt Title *</label><input type="text" id="title" class="form-control" required maxlength="120" /></div>
                 <div><label>Category *</label><select id="categoryId" class="form-control" required></select></div>
-                <div class="full"><label>Short Description *</label><textarea id="description" class="form-control" required maxlength="400" placeholder="One-line summary shown on the card."></textarea><div class="form-hint">Max 400 characters. Shown on prompt card.</div></div>
+                <div class="full"><label>Short Description</label><textarea id="description" class="form-control" maxlength="400" placeholder="One-line summary shown on the card (optional)."></textarea><div class="form-hint">Max 400 characters. Optional — shown on prompt card.</div></div>
                 <div class="full"><label>Full Prompt Text *</label><textarea id="fullContent" class="form-control" required placeholder="Paste the full prompt text here. Line breaks are preserved when copying."></textarea><div class="form-hint">Saved as <code>fullContent</code> in <code>prompts_public</code>. For Reward-Locked prompts, the text is hidden in the user UI until the user watches the reward video (the lock is enforced client-side, not server-side).</div></div>
-                <div><label>Thumbnail Image</label><input type="file" id="thumbFile" accept="image/*" class="form-control" /><img id="thumbPreview" style="margin-top:8px;max-height:80px;border-radius:8px;display:none" /><input type="hidden" id="thumbnail" /></div>
+                <div><label>Thumbnail (image / GIF / short video)</label><input type="file" id="thumbFile" accept="image/*,video/*" class="form-control" />
+                  <div id="thumbPreviewWrap" style="margin-top:8px;max-height:120px;border-radius:8px;overflow:hidden;display:none;background:var(--bg-main)">
+                    <img id="thumbPreview" style="max-height:120px;border-radius:8px;display:block" />
+                    <video id="thumbPreviewVideo" style="max-height:120px;width:100%;display:none" autoplay muted loop playsinline></video>
+                  </div>
+                  <div class="form-hint">Images auto-resize to 100×100. GIFs and videos are stored as-is (max 5 MB). Videos auto-play muted looped in the card.</div>
+                  <input type="hidden" id="thumbnail" />
+                </div>
                 <div><label>Prompt Type</label><select id="type" class="form-control"><option>Image</option><option>Video</option><option>Text</option><option selected>Coding</option><option>Other</option></select></div>
                 <input type="hidden" id="accessType" value="Free" />
                 <div><label>Display Order</label><input type="number" id="displayOrder" class="form-control" value="0" /></div>
@@ -1661,7 +1686,7 @@
     const cat = State.categories.find(c => c.id === p.categoryId);
     const catName = cat ? cat.name : "Uncategorized";
     const catIcon = cat ? (cat.icon || "ri-folder-line") : "ri-folder-line";
-    const thumb = p.thumbnail ? `<img src="${escapeHtml(p.thumbnail)}" alt="${escapeHtml(p.title)}" loading="lazy" />` : `<img src="${placeholderThumb(p.title)}" alt="" loading="lazy" />`;
+    const thumb = renderThumbElement(p.thumbnail, p.title);
     const actionBtn = `<button class="btn btn-ghost" data-act="copy-free"><i class="ri-file-copy-line"></i> Copy</button><button class="btn btn-primary" data-act="view"><i class="ri-eye-line"></i> View</button>`;
     return `<article class="prompt-card" data-id="${escapeHtml(p.id)}">
       <div class="prompt-thumb">${thumb}</div>
@@ -1725,7 +1750,7 @@
     if (!p) return showToast("Prompt not found.", "error");
     const cat = State.categories.find(c => c.id === p.categoryId);
     const catName = cat ? cat.name : "Uncategorized";
-    const thumb = p.thumbnail ? `<img src="${escapeHtml(p.thumbnail)}" alt="${escapeHtml(p.title)}" />` : `<img src="${placeholderThumb(p.title)}" alt="" />`;
+    const thumb = renderThumbElement(p.thumbnail, p.title);
     // All prompts are Free now — text is always shown.
     const text = p.fullContent || p.freeContent || "[Prompt text not yet saved by admin.]";
     const contentBox = `<div class="prompt-text-box" id="promptTextBox">${escapeHtml(text)}</div>
@@ -2282,6 +2307,10 @@
     $("#thumbnail").value = "";
     $("#thumbPreview").style.display = "none";
     $("#thumbPreview").src = "";
+    const vidPrev = $("#thumbPreviewVideo");
+    if (vidPrev) { vidPrev.pause(); vidPrev.removeAttribute("src"); vidPrev.style.display = "none"; }
+    const wrap = $("#thumbPreviewWrap");
+    if (wrap) wrap.style.display = "none";
     $("#saveBtn").style.display = "inline-flex";
     $("#updateBtn").style.display = "none";
     $("#deleteBtn").style.display = "none";
@@ -2295,9 +2324,19 @@
     const file = e.target.files[0];
     if (!file) return;
 
-    // Read the file as a data URL — we ALWAYS use base64 (no Firebase Storage).
-    // Then resize to 100x100 px via <canvas> so the stored string is small
-    // (~1-3 KB) regardless of the original upload size.
+    // Detect file kind
+    const isVideo = file.type.startsWith("video/");
+    const isGif = file.type === "image/gif" || file.name.toLowerCase().endsWith(".gif");
+
+    // For videos and GIFs we store the original file as-is (no resize —
+    // we want to preserve animation/playback). Cap at 5 MB so the
+    // Realtime Database write stays reasonably fast.
+    if ((isVideo || isGif) && file.size > 5 * 1024 * 1024) {
+      showToast("Video/GIF too large. Max 5 MB — pick a shorter clip or smaller file.", "error", 6000);
+      return;
+    }
+
+    // Read as data URL — we ALWAYS use base64 (no Firebase Storage).
     let dataUrl;
     try {
       dataUrl = await new Promise((resolve, reject) => {
@@ -2311,22 +2350,56 @@
       return;
     }
 
-    // Show the original (full-size) preview in the admin form
-    $("#thumbPreview").src = dataUrl;
-    $("#thumbPreview").style.display = "block";
-
-    // Resize to 100×100 (cover — center-crop to fill the square).
-    try {
-      const resized = await resizeImageTo100x100(dataUrl);
-      $("#thumbnail").value = resized;
-      const kb = (resized.length / 1024).toFixed(1);
-      showToast(`Thumbnail resized to 100×100 (${kb} KB base64).`, "success");
-    } catch (err) {
-      // If canvas resize fails for any reason (e.g. CORS-restricted image),
-      // fall back to storing the original data URL.
-      $("#thumbnail").value = dataUrl;
-      showToast("Resize failed, stored original image instead.", "info");
+    // ----- Show preview (image OR video) -----
+    const imgPrev = $("#thumbPreview");
+    const vidPrev = $("#thumbPreviewVideo");
+    const wrap = $("#thumbPreviewWrap");
+    if (wrap) { wrap.style.display = "block"; }
+    if (isVideo) {
+      if (imgPrev) imgPrev.style.display = "none";
+      if (vidPrev) { vidPrev.src = dataUrl; vidPrev.style.display = "block"; }
+    } else {
+      if (vidPrev) { vidPrev.pause(); vidPrev.removeAttribute("src"); vidPrev.style.display = "none"; }
+      if (imgPrev) { imgPrev.src = dataUrl; imgPrev.style.display = "block"; }
     }
+
+    // ----- Store -----
+    if (isVideo || isGif) {
+      // Store as-is — preserves animation/playback
+      $("#thumbnail").value = dataUrl;
+      const kb = (dataUrl.length / 1024).toFixed(1);
+      const mb = (file.size / 1024 / 1024).toFixed(2);
+      showToast(`${isVideo ? "Video" : "GIF"} stored (${mb} MB → ${kb} KB base64).`, "success");
+    } else {
+      // Regular image — resize to 100×100 (cover — center-crop to fill the square).
+      try {
+        const resized = await resizeImageTo100x100(dataUrl);
+        $("#thumbnail").value = resized;
+        const kb = (resized.length / 1024).toFixed(1);
+        showToast(`Thumbnail resized to 100×100 (${kb} KB base64).`, "success");
+      } catch (err) {
+        // If canvas resize fails for any reason (e.g. CORS-restricted image),
+        // fall back to storing the original data URL.
+        $("#thumbnail").value = dataUrl;
+        showToast("Resize failed, stored original image instead.", "info");
+      }
+    }
+  }
+
+  // Helper — given a thumbnail src (data URL or http URL), render the
+  // right element: <video> for video sources, <img> for everything else
+  // (including GIFs — browsers render them as animated <img>).
+  function renderThumbElement(src, alt) {
+    if (!src) {
+      // Placeholder — SVG with first letter of alt
+      return `<img src="${placeholderThumb(alt || "")}" alt="" loading="lazy" />`;
+    }
+    const isVideoSrc = src.startsWith("data:video/") ||
+      /\.(mp4|webm|ogg|mov|m4v|avi)(\?|$)/i.test(src);
+    if (isVideoSrc) {
+      return `<video src="${escapeHtml(src)}" autoplay muted loop playsinline></video>`;
+    }
+    return `<img src="${escapeHtml(src)}" alt="${escapeHtml(alt || "")}" loading="lazy" />`;
   }
 
   // Helper — resize an image data URL to 100x100 px with cover (center-crop).
@@ -2401,7 +2474,25 @@
     $("#popular").checked = !!p.popular;
     $("#published").checked = p.published !== false;
     $("#thumbnail").value = p.thumbnail || "";
-    if (p.thumbnail) { $("#thumbPreview").src = p.thumbnail; $("#thumbPreview").style.display = "block"; }
+    // Show preview for existing thumbnail (image OR video)
+    const wrap = $("#thumbPreviewWrap");
+    if (p.thumbnail) {
+      const isVid = p.thumbnail.startsWith("data:video/") || /\.(mp4|webm|ogg|mov|m4v|avi)(\?|$)/i.test(p.thumbnail);
+      if (wrap) wrap.style.display = "block";
+      if (isVid) {
+        const vidPrev = $("#thumbPreviewVideo");
+        const imgPrev = $("#thumbPreview");
+        if (imgPrev) imgPrev.style.display = "none";
+        if (vidPrev) { vidPrev.src = p.thumbnail; vidPrev.style.display = "block"; }
+      } else {
+        const vidPrev = $("#thumbPreviewVideo");
+        const imgPrev = $("#thumbPreview");
+        if (vidPrev) { vidPrev.pause(); vidPrev.removeAttribute("src"); vidPrev.style.display = "none"; }
+        if (imgPrev) { imgPrev.src = p.thumbnail; imgPrev.style.display = "block"; }
+      }
+    } else {
+      if (wrap) wrap.style.display = "none";
+    }
     // Load full prompt text from prompts_public/fullContent
     // (backward-compat: fall back to legacy freeContent for older prompts).
     if (p.fullContent) {
