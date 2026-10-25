@@ -295,10 +295,14 @@
     .cat-chip:hover { color: var(--accent-blue); border-color: var(--accent-blue); transform: translateY(-1px); }
     .cat-chip.active { background: var(--gradient-primary); color: #fff; border-color: transparent; box-shadow: 0 6px 14px rgba(79,107,255,.35); }
 
-    .prompts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    /* Auto-sized responsive grid: columns auto-fit to available width.
+       minmax(240px, 1fr) = each column is at least 240px and stretches
+       to fill any extra horizontal space. The thumbnail image inside
+       each card auto-adjusts to fill its container (object-fit: cover). */
+    .prompts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
     .prompts-grid.list-view { grid-template-columns: 1fr; }
-    .prompts-grid.list-view .prompt-card { display: grid; grid-template-columns: 140px 1fr auto; gap: 18px; padding: 14px; }
-    .prompts-grid.list-view .prompt-thumb { height: 100%; min-height: 110px; }
+    .prompts-grid.list-view .prompt-card { display: grid; grid-template-columns: 160px 1fr auto; gap: 18px; padding: 14px; }
+    .prompts-grid.list-view .prompt-thumb { height: 100%; min-height: 120px; }
     .prompts-grid.list-view .prompt-actions { flex-direction: column; align-self: center; }
 
     .prompt-card {
@@ -306,14 +310,18 @@
       border: 1px solid rgba(0,0,0,.06); box-shadow: var(--shadow-sm);
       display: flex; flex-direction: column;
       transition: transform var(--transition), box-shadow var(--transition);
+      /* No fixed width — let the grid auto-size it. */
     }
     .prompt-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    /* Thumbnail container: 192px tall, fills the card width. Uses flex
+       so the <img> can reliably fill the area with object-fit: cover. */
     .prompt-thumb {
-      width: 100%; height: 160px; background: var(--gradient-soft);
-      position: relative; overflow: hidden; display: grid; place-items: center;
+      width: 100%; height: 192px; background: var(--gradient-soft);
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
       color: var(--accent-purple); font-size: 2.5rem;
     }
-    .prompt-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .prompt-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .prompt-thumb .lock-overlay { position: absolute; inset: 0; background: rgba(10, 15, 36, .55); display: grid; place-items: center; color: #fff; font-size: 1.6rem; backdrop-filter: blur(2px); }
 
     .prompt-body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; }
@@ -367,6 +375,97 @@
     .bottom-nav button i { font-size: 1.2rem; }
     .bottom-nav button.active { color: var(--accent-blue); }
 
+    /* ============= Hamburger + Mobile Drawer ============= */
+    .hamburger-btn {
+      display: none;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--gradient-soft); color: var(--text-primary);
+      align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      transition: transform var(--transition);
+      flex-shrink: 0;
+    }
+    .hamburger-btn:hover { transform: scale(1.06); }
+
+    .drawer-overlay {
+      position: fixed; inset: 0;
+      background: rgba(10, 15, 36, .65);
+      z-index: 105;
+      display: none;
+      backdrop-filter: blur(4px);
+      animation: fade-in .2s ease;
+    }
+    .drawer-overlay.active { display: block; }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+    .mobile-drawer {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 280px; max-width: 85vw;
+      background: var(--bg-sidebar); color: var(--text-on-dark);
+      z-index: 110;
+      transform: translateX(-100%);
+      transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+      overflow-y: auto;
+      padding: 16px 14px;
+      display: flex; flex-direction: column;
+    }
+    .mobile-drawer.active { transform: translateX(0); }
+
+    .drawer-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 6px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      margin-bottom: 10px;
+    }
+    .drawer-head .brand-logo { width: 32px; height: 32px; font-size: .9rem; }
+    .drawer-head .brand-text { color: #fff; font-weight: 700; flex: 1; margin-left: 10px; font-size: 1rem; }
+    .drawer-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,.1); color: #fff;
+      display: grid; place-items: center; font-size: 1.1rem;
+      transition: background var(--transition);
+    }
+    .drawer-close:hover { background: rgba(255,255,255,.2); }
+
+    .drawer-h {
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .12em;
+      color: rgba(232, 236, 255, .55);
+      margin: 12px 8px 6px;
+    }
+
+    .drawer-link {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; border-radius: var(--radius-sm);
+      color: rgba(232, 236, 255, .82);
+      font-size: .92rem; cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+      margin: 2px 0;
+    }
+    .drawer-link i { font-size: 1.05rem; opacity: .85; min-width: 22px; }
+    .drawer-link:hover, .drawer-link.active {
+      background: var(--gradient-primary); color: #fff;
+      box-shadow: 0 4px 10px rgba(79,107,255,.3);
+    }
+
+    .drawer-cat-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: var(--radius-sm);
+      color: rgba(232, 236, 255, .75);
+      font-size: .88rem; cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .drawer-cat-pill i { font-size: 1rem; min-width: 22px; }
+    .drawer-cat-pill:hover, .drawer-cat-pill.active {
+      background: var(--bg-sidebar-soft); color: #fff;
+    }
+
+    .drawer-foot {
+      margin-top: auto; padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .drawer-foot .btn { flex: 1; min-width: 0; padding: 9px 10px; font-size: .82rem; }
+
     .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1 / -1; }
     .empty .ico { font-size: 3.5rem; margin-bottom: 10px; opacity: .6; }
     .empty h3 { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 4px; }
@@ -412,7 +511,7 @@
     table.data tr:hover td { background: rgba(79,107,255,.04); }
     .cell-title { font-weight: 600; }
     .cell-meta { color: var(--text-secondary); font-size: .82rem; }
-    .row-thumb { width: 56px; height: 36px; border-radius: 6px; background: var(--gradient-soft); object-fit: cover; }
+    .row-thumb { width: 100px; height: 100px; border-radius: 8px; background: var(--gradient-soft); object-fit: cover; }
     .row-actions { display: flex; gap: 6px; }
     .btn-icon { width: 30px; height: 30px; border-radius: 6px; display: grid; place-items: center; background: var(--bg-main); transition: all var(--transition); }
     .btn-icon:hover { background: var(--accent-blue); color: #fff; }
@@ -440,24 +539,31 @@
       .layout { grid-template-columns: 1fr; }
       .sidebar { display: none; }
       .bottom-nav { display: flex; }
+      .hamburger-btn { display: inline-flex; }
       .main { padding: 18px 16px 100px; }
       .header-row { padding: 12px 16px; gap: 10px; }
       .brand span:not(.brand-logo) { display: none; }
       .stat-strip { grid-template-columns: repeat(2, 1fr); }
       .hero { padding: 24px 22px; }
       .hero h1 { font-size: 1.4rem; }
-      .prompts-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+      /* Mobile: 2-column auto-sized grid (each column stretches to fill) */
+      .prompts-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
       .prompts-grid.list-view .prompt-card { grid-template-columns: 90px 1fr; }
       .prompts-grid.list-view .prompt-actions { grid-column: 1 / -1; flex-direction: row; }
       .prompt-thumb { height: 120px; }
       .admin-body { grid-template-columns: 1fr; }
       .admin-sidebar { display: none; }
       .form-grid { grid-template-columns: 1fr; }
+      /* Hide brand text in admin header on mobile (keep avatar + hamburger) */
+      .admin-app .brand span:not(.brand-logo):not(.badge) { display: none; }
+      /* Hide the "View Site" button on mobile (still in drawer) */
+      .admin-app .header-row > .btn-ghost { display: none; }
     }
     @media (max-width: 480px) {
       .prompts-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
       .prompt-card { font-size: .82rem; }
       .prompt-title { font-size: .86rem; }
+      .prompt-thumb { height: 110px; }
       .prompt-desc { -webkit-line-clamp: 1; font-size: .76rem; }
       .search-box input { font-size: .85rem; }
       .toast-container { left: 16px; right: 16px; bottom: 90px; }
@@ -477,6 +583,7 @@
   <div id="userPanel">
     <header class="app-header">
       <div class="header-row">
+        <button class="hamburger-btn" id="userHamburger" title="Menu"><i class="ri-menu-line"></i></button>
         <a class="brand" href="#home">
           <span class="brand-logo">P</span>
           <span>Prompt Manager</span>
@@ -503,7 +610,6 @@
         <a class="sidebar-link" data-nav="popular"><i class="ri-fire-line ico"></i> Popular</a>
         <a class="sidebar-link" data-nav="featured"><i class="ri-star-line ico"></i> Featured</a>
         <a class="sidebar-link" data-nav="free"><i class="ri-unlock-line ico"></i> Free Prompts</a>
-        <a class="sidebar-link" data-nav="locked"><i class="ri-lock-line ico"></i> Reward Locked</a>
         <h4>Categories</h4>
         <div id="catList" class="cat-pills"></div>
       </aside>
@@ -566,36 +672,13 @@
       </div>
     </div>
 
-    <!-- Reward Unlock Modal -->
-    <div class="modal-overlay" id="rewardOverlay">
-      <div class="modal reward-modal">
-        <div class="modal-head">
-          <h3>Unlock Prompt</h3>
-          <button class="modal-close" data-close-reward><i class="ri-close-line"></i></button>
-        </div>
-        <div class="modal-body">
-          <span class="reward-ico">🔒</span>
-          <h3>This prompt is locked</h3>
-          <p>Watch a rewarded advertisement to unlock and copy this prompt.</p>
-          <div id="rewardStatus" class="reward-status" style="display:none"></div>
-          <div id="adContainer" class="ad-container" style="display:none">Ad will be displayed here.</div>
-          <div id="videoProgressWrap" class="video-progress-wrap" style="display:none">
-            <div class="video-progress-bar"><div id="videoProgressFill" class="video-progress-fill"></div></div>
-            <div class="video-progress-label" id="videoProgressLabel">Watch the video to unlock… <strong>0s</strong> / <span id="videoProgressTarget">0s</span></div>
-          </div>
-          <button id="watchAdBtn" class="btn btn-primary btn-block"><i class="ri-play-circle-line"></i> Watch Ad &amp; Unlock</button>
-          <button id="cancelUnlockBtn" class="btn btn-ghost btn-block" style="margin-top:8px">Cancel</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Mobile bottom nav -->
     <nav class="bottom-nav">
       <button data-nav="home" class="active"><i class="ri-home-5-line"></i> Home</button>
       <button data-nav="latest"><i class="ri-flashlight-line"></i> Latest</button>
       <button data-nav="featured"><i class="ri-star-line"></i> Featured</button>
+      <button data-nav="popular"><i class="ri-fire-line"></i> Popular</button>
       <button data-nav="free"><i class="ri-unlock-line"></i> Free</button>
-      <button data-nav="locked"><i class="ri-lock-line"></i> Locked</button>
     </nav>
   </div>
 
@@ -629,6 +712,7 @@
   <div class="admin-app" id="adminApp">
     <header class="app-header">
       <div class="header-row">
+        <button class="hamburger-btn" id="adminHamburger" title="Menu"><i class="ri-menu-line"></i></button>
         <a class="brand" href="#admin">
           <span class="brand-logo">P</span>
           <span>Prompt Manager</span>
@@ -657,10 +741,6 @@
         <div class="sidebar-h">Filters</div>
         <a class="sidebar-link" data-section="featured"><i class="ri-star-line"></i> Featured</a>
         <a class="sidebar-link" data-section="free"><i class="ri-unlock-line"></i> Free Prompts</a>
-        <a class="sidebar-link" data-section="locked"><i class="ri-lock-line"></i> Locked Prompts</a>
-        <div class="sidebar-h">System</div>
-        <a class="sidebar-link" data-section="ad-settings"><i class="ri-ad-line"></i> Ad Settings</a>
-        <a class="sidebar-link" data-section="rewards"><i class="ri-medal-line"></i> Reward Monitor</a>
       </aside>
 
       <main class="admin-main">
@@ -683,16 +763,13 @@
                 <input id="promptSearch" type="text" placeholder="Search by title or ID…" />
               </div>
               <select class="form-control" id="filterCat" style="max-width:200px"><option value="">All Categories</option></select>
-              <select class="form-control" id="filterAccess" style="max-width:180px">
-                <option value="">All Access</option><option value="Free">Free</option><option value="Reward Locked">Reward Locked</option>
-              </select>
               <select class="form-control" id="filterPublished" style="max-width:160px">
                 <option value="">All Status</option><option value="true">Published</option><option value="false">Unpublished</option>
               </select>
             </div>
             <div style="overflow-x:auto">
               <table class="data">
-                <thead><tr><th>Prompt</th><th>Category</th><th>Type</th><th>Access</th><th>Stats</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Prompt</th><th>Category</th><th>Type</th><th>Stats</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="promptsTableBody"></tbody>
               </table>
             </div>
@@ -709,10 +786,10 @@
                 <div><label>Prompt Title *</label><input type="text" id="title" class="form-control" required maxlength="120" /></div>
                 <div><label>Category *</label><select id="categoryId" class="form-control" required></select></div>
                 <div class="full"><label>Short Description *</label><textarea id="description" class="form-control" required maxlength="400" placeholder="One-line summary shown on the card."></textarea><div class="form-hint">Max 400 characters. Shown on prompt card.</div></div>
-                <div class="full"><label>Full Prompt Text *</label><textarea id="fullContent" class="form-control" required placeholder="Paste the full prompt text here. Line breaks are preserved when copying."></textarea><div class="form-hint">For Free prompts, this is duplicated into the public node. For Reward-Locked prompts, it is stored ONLY in <code>prompts_private</code> and never readable by clients.</div></div>
+                <div class="full"><label>Full Prompt Text *</label><textarea id="fullContent" class="form-control" required placeholder="Paste the full prompt text here. Line breaks are preserved when copying."></textarea><div class="form-hint">Saved as <code>fullContent</code> in <code>prompts_public</code>. For Reward-Locked prompts, the text is hidden in the user UI until the user watches the reward video (the lock is enforced client-side, not server-side).</div></div>
                 <div><label>Thumbnail Image</label><input type="file" id="thumbFile" accept="image/*" class="form-control" /><img id="thumbPreview" style="margin-top:8px;max-height:80px;border-radius:8px;display:none" /><input type="hidden" id="thumbnail" /></div>
                 <div><label>Prompt Type</label><select id="type" class="form-control"><option>Image</option><option>Video</option><option>Text</option><option selected>Coding</option><option>Other</option></select></div>
-                <div><label>Access Type</label><select id="accessType" class="form-control"><option value="Free" selected>Free</option><option value="Reward Locked">Reward Locked</option></select></div>
+                <input type="hidden" id="accessType" value="Free" />
                 <div><label>Display Order</label><input type="number" id="displayOrder" class="form-control" value="0" /></div>
                 <div class="full" style="display:flex;gap:12px;flex-wrap:wrap">
                   <div class="checkbox-row"><input type="checkbox" id="featured" /><label for="featured">Featured</label></div>
@@ -722,7 +799,7 @@
               </div>
               <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
                 <button type="submit" class="btn btn-primary" id="saveBtn"><i class="ri-save-line"></i> SAVE</button>
-                <button type="button" class="btn btn-ghost" id="updateBtn" style="display:none"><i class="ri-edit-line"></i> UPDATE</button>
+                <button type="submit" class="btn btn-primary" id="updateBtn" style="display:none"><i class="ri-edit-line"></i> UPDATE</button>
                 <button type="button" class="btn btn-danger" id="deleteBtn" style="display:none"><i class="ri-delete-bin-line"></i> DELETE</button>
                 <button type="reset" class="btn btn-ghost" id="cancelBtn"><i class="ri-close-line"></i> CANCEL</button>
               </div>
@@ -738,108 +815,6 @@
 
         <section class="admin-section" data-section="featured"><div class="page-title"><h2>Featured Prompts</h2></div><div class="table-wrap" style="padding:14px"><div id="featuredTableBody"></div></div></section>
         <section class="admin-section" data-section="free"><div class="page-title"><h2>Free Prompts</h2></div><div class="table-wrap" style="padding:14px"><div id="freeTableBody"></div></div></section>
-        <section class="admin-section" data-section="locked"><div class="page-title"><h2>Reward Locked Prompts</h2></div><div class="table-wrap" style="padding:14px"><div id="lockedTableBody"></div></div></section>
-
-        <!-- AD SETTINGS -->
-        <section class="admin-section" data-section="ad-settings">
-          <div class="page-title"><h2>Advertisement Settings</h2></div>
-          <div class="table-wrap" style="padding:22px">
-            <form id="adSettingsForm">
-              <div class="form-grid">
-                <div>
-                  <label>Advertisement Provider</label>
-                  <select id="adProvider" class="form-control">
-                    <option value="custom_video">Custom Video (YouTube / Facebook Reels / .mp4)</option>
-                    <option value="monetag">Monetag (rewarded interstitial)</option>
-                    <option value="adsterra">Adsterra (custom bridge)</option>
-                    <option value="applovin">AppLovin MAX</option>
-                    <option value="unity">Unity Ads</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                  <div class="form-hint">Default = Custom Video — paste any YouTube Shorts, Facebook Reel, or direct .mp4 link below.</div>
-                </div>
-                <div>
-                  <label>Reward Ad Placement ID (legacy providers)</label>
-                  <input type="text" id="adPlacementId" class="form-control" placeholder="Public placement/tag ID" />
-                  <div class="form-hint">Only used by Monetag / Adsterra / AppLovin / Unity. Ignored for Custom Video.</div>
-                </div>
-
-                <div class="full" style="background:var(--bg-main);padding:16px;border-radius:8px;border:1px solid rgba(79,107,255,.15)">
-                  <h4 style="font-size:.95rem;margin-bottom:10px;color:var(--accent-purple)"><i class="ri-video-line"></i> Custom Reward Video Settings</h4>
-                  <div class="form-grid" style="gap:14px">
-                    <div class="full">
-                      <label>Video URL *</label>
-                      <input type="text" id="customVideoUrl" class="form-control" placeholder="https://www.youtube.com/shorts/abc123 OR https://www.facebook.com/reel/123 OR https://example.com/ad.mp4" />
-                      <div class="form-hint">Paste a YouTube Shorts/watch link, a Facebook Reel URL, or a direct .mp4/.webm video URL. The video will play inside the unlock popup.</div>
-                    </div>
-                    <div>
-                      <label>Video Type</label>
-                      <select id="customVideoType" class="form-control">
-                        <option value="auto">Auto-detect (recommended)</option>
-                        <option value="youtube">YouTube</option>
-                        <option value="facebook">Facebook Reel</option>
-                        <option value="direct">Direct Video (.mp4)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label>Watch Duration (seconds)</label>
-                      <input type="number" id="customVideoDuration" class="form-control" value="30" min="3" max="600" />
-                      <div class="form-hint">User must watch this many seconds before the unlock fires.</div>
-                    </div>
-                    <div class="full">
-                      <label>Video Title (shown above player)</label>
-                      <input type="text" id="customVideoTitle" class="form-control" placeholder="Sponsored Video" />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label>Unlock Duration (ms)</label>
-                  <input type="number" id="adUnlockDuration" class="form-control" value="86400000" />
-                  <div class="form-hint">Default: 86400000 (24h).</div>
-                </div>
-                <div>
-                  <label>Daily Unlock Limit</label>
-                  <input type="number" id="adDailyLimit" class="form-control" value="20" />
-                </div>
-                <div class="full"><label>Ad Error Message</label><input type="text" id="adErrorMsg" class="form-control" placeholder="No ad available right now. Please try again later." /></div>
-                <div class="full" style="display:flex;gap:12px">
-                  <div class="checkbox-row"><input type="checkbox" id="adEnabled" /><label for="adEnabled">Ads Enabled</label></div>
-                  <div class="checkbox-row"><input type="checkbox" id="rewardUnlockEnabled" /><label for="rewardUnlockEnabled">Reward Unlock Enabled</label></div>
-                </div>
-              </div>
-              <div style="margin-top:18px"><button type="submit" class="btn btn-primary"><i class="ri-save-line"></i> Save Settings</button></div>
-            </form>
-            <div style="margin-top:30px;padding:14px 16px;background:rgba(234,88,12,.08);border-radius:8px;border-left:3px solid var(--badge-locked)">
-              <h4 style="font-size:.95rem;color:var(--badge-locked);margin-bottom:6px"><i class="ri-shield-key-line"></i> Demo Mode — How It Works Without Cloud Functions</h4>
-              <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:8px">
-                With <code>provider = "custom_video"</code>, the reward flow runs entirely client-side:
-              </p>
-              <ol style="font-size:.85rem;color:var(--text-secondary);padding-left:20px;line-height:1.7">
-                <li>User clicks a reward-locked prompt → unlock modal opens → video <strong>auto-plays muted</strong>.</li>
-                <li>The adapter tracks <strong>real watch time</strong> (YouTube IFrame API / HTML5 <code>timeupdate</code>).</li>
-                <li>When the user has watched for <code>customVideoDurationSec</code> seconds, the reward fires locally.</li>
-                <li>Unlock is stored in <code>localStorage</code> (24h) and the prompt opens.</li>
-                <li>Locked text is fetched directly from <code>prompts_private/&lt;id&gt;/fullContent</code> (rules must allow public read).</li>
-              </ol>
-              <p style="font-size:.82rem;color:var(--badge-locked);margin-top:10px">
-                <strong>Trade-off:</strong> anyone who queries the database directly can read locked text without watching the video. For real production use, deploy Cloud Functions (<code>/api/verifyReward</code> + <code>/api/getLockedContent</code>), tighten <code>prompts_private</code> rules to <code>".read": false</code>, and switch the provider to Monetag/Adsterra/AppLovin/Unity.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <!-- REWARD MONITOR -->
-        <section class="admin-section" data-section="rewards">
-          <div class="page-title"><h2>Reward Activity Monitor</h2></div>
-          <div class="stats-grid" id="rewardStats"></div>
-          <div class="table-wrap">
-            <div class="table-toolbar"><strong style="font-size:.9rem;color:var(--text-secondary)"><i class="ri-time-line"></i> Recent Reward Events</strong></div>
-            <div style="overflow-x:auto">
-              <table class="data"><thead><tr><th>Prompt ID</th><th>Device</th><th>Provider</th><th>Status</th><th>Time</th></tr></thead><tbody id="rewardEventsBody"></tbody></table>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   </div>
@@ -884,6 +859,68 @@
   </div>
 
   <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ============= USER MOBILE DRAWER (slide-in from left) ============= -->
+  <div class="drawer-overlay" id="userDrawerOverlay"></div>
+  <aside class="mobile-drawer" id="userDrawer">
+    <div class="drawer-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="brand-logo">P</div>
+        <div class="brand-text">Prompt Manager</div>
+      </div>
+      <button class="drawer-close" id="userDrawerClose"><i class="ri-close-line"></i></button>
+    </div>
+
+    <div class="drawer-h">Navigation</div>
+    <a class="drawer-link active" data-nav="home"><i class="ri-home-5-line"></i> Home</a>
+    <a class="drawer-link" data-nav="latest"><i class="ri-flashlight-line"></i> Latest</a>
+    <a class="drawer-link" data-nav="popular"><i class="ri-fire-line"></i> Popular</a>
+    <a class="drawer-link" data-nav="featured"><i class="ri-star-line"></i> Featured</a>
+    <a class="drawer-link" data-nav="free"><i class="ri-unlock-line"></i> Free Prompts</a>
+
+    <div class="drawer-h">Categories</div>
+    <div id="userDrawerCats" style="overflow-y:auto;max-height:40vh"></div>
+
+    <div class="drawer-foot">
+      <button class="btn btn-ghost" id="userDrawerTheme" style="background:rgba(255,255,255,.1);color:#fff">
+        <i class="ri-moon-line"></i> Theme
+      </button>
+      <a href="#admin" class="btn btn-primary" style="text-decoration:none">
+        <i class="ri-shield-user-line"></i> Admin
+      </a>
+    </div>
+  </aside>
+
+  <!-- ============= ADMIN MOBILE DRAWER (slide-in from left) ============= -->
+  <div class="drawer-overlay" id="adminDrawerOverlay"></div>
+  <aside class="mobile-drawer" id="adminDrawer">
+    <div class="drawer-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="brand-logo">P</div>
+        <div class="brand-text">Admin Panel</div>
+      </div>
+      <button class="drawer-close" id="adminDrawerClose"><i class="ri-close-line"></i></button>
+    </div>
+
+    <div class="drawer-h">Main</div>
+    <a class="drawer-link active" data-section="dashboard"><i class="ri-dashboard-line"></i> Dashboard</a>
+    <a class="drawer-link" data-section="prompts"><i class="ri-stack-line"></i> All Prompts</a>
+    <a class="drawer-link" data-section="new-prompt"><i class="ri-add-circle-line"></i> Add Prompt</a>
+    <a class="drawer-link" data-section="categories"><i class="ri-folders-line"></i> Categories</a>
+
+    <div class="drawer-h">Filters</div>
+    <a class="drawer-link" data-section="featured"><i class="ri-star-line"></i> Featured</a>
+    <a class="drawer-link" data-section="free"><i class="ri-unlock-line"></i> Free Prompts</a>
+
+    <div class="drawer-foot">
+      <a href="#home" class="btn btn-ghost" style="background:rgba(255,255,255,.1);color:#fff;text-decoration:none" target="_blank" rel="noopener">
+        <i class="ri-external-link-line"></i> View Site
+      </a>
+      <button class="btn btn-danger" id="adminDrawerSignOut">
+        <i class="ri-logout-box-line"></i> Sign Out
+      </button>
+    </div>
+  </aside>
 
   <!--
     Placeholders filled by subsequent Edit calls:
@@ -1414,8 +1451,6 @@
     // Firebase Auth listener — now triggered on successful admin login).
     if (db) {
       loadAdminCategoriesRT();
-      loadAdminRewardEventsRT();
-      loadAdminSettingsRT();
     }
   }
 
@@ -1431,7 +1466,11 @@
     $("#themeBtn")?.addEventListener("click", () => { toggleTheme(); setThemeIcon("#themeIco"); });
     setThemeIcon("#themeIco");
 
-    $$("[data-nav]").forEach(btn => btn.addEventListener("click", () => setNav(btn.dataset.nav)));
+    // Wire up sidebar links AND drawer links (both use data-nav)
+    $$("[data-nav]").forEach(btn => btn.addEventListener("click", () => {
+      setNav(btn.dataset.nav);
+      closeUserDrawer();
+    }));
     $$(".view-toggle button").forEach(btn => btn.addEventListener("click", () => setView(btn.dataset.view)));
 
     const searchInput = $("#searchInput");
@@ -1442,12 +1481,51 @@
 
     $("[data-close]")?.addEventListener("click", closeDetailModal);
     $("#detailOverlay")?.addEventListener("click", e => { if (e.target.id === "detailOverlay") closeDetailModal(); });
-    $("[data-close-reward]")?.addEventListener("click", closeRewardModal);
-    $("#rewardOverlay")?.addEventListener("click", e => { if (e.target.id === "rewardOverlay") closeRewardModal(); });
-    $("#watchAdBtn")?.addEventListener("click", handleWatchAd);
-    $("#cancelUnlockBtn")?.addEventListener("click", closeRewardModal);
+
+    // ---- Mobile drawer wiring (user panel) ----
+    $("#userHamburger")?.addEventListener("click", openUserDrawer);
+    $("#userDrawerClose")?.addEventListener("click", closeUserDrawer);
+    $("#userDrawerOverlay")?.addEventListener("click", closeUserDrawer);
+    $("#userDrawerTheme")?.addEventListener("click", () => {
+      toggleTheme(); setThemeIcon("#themeIco");
+    });
+
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") { closeDetailModal(); closeRewardModal(); closeConfirm(); }
+      if (e.key === "Escape") { closeDetailModal(); closeConfirm(); closeUserDrawer(); closeAdminDrawer(); }
+    });
+  }
+
+  // ---- User panel mobile drawer ----
+  function openUserDrawer() {
+    renderUserDrawerCategories();
+    $("#userDrawer")?.classList.add("active");
+    $("#userDrawerOverlay")?.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+  function closeUserDrawer() {
+    $("#userDrawer")?.classList.remove("active");
+    $("#userDrawerOverlay")?.classList.remove("active");
+    if (!document.querySelector(".modal-overlay.active")) {
+      document.body.style.overflow = "";
+    }
+  }
+  function renderUserDrawerCategories() {
+    const container = $("#userDrawerCats");
+    if (!container) return;
+    if (!State.categories.length) {
+      container.innerHTML = `<div class="drawer-cat-pill"><span style="opacity:.6">No categories yet.</span></div>`;
+      return;
+    }
+    container.innerHTML = State.categories.map(c => `
+      <div class="drawer-cat-pill ${State.activeCategory===c.id?'active':''}" data-cat="${escapeHtml(c.id)}">
+        <i class="${escapeHtml(c.icon || 'ri-folder-line')}"></i>
+        <span>${escapeHtml(c.name)}</span>
+      </div>`).join("");
+    $$("#userDrawerCats .drawer-cat-pill").forEach(el => {
+      el.addEventListener("click", () => {
+        toggleCategory(el.dataset.cat);
+        closeUserDrawer();
+      });
     });
   }
 
@@ -1559,11 +1637,11 @@
       if (pop.length) { show($("#popularSection")); renderGrid($("#popularGrid"), pop); } else hide($("#popularSection"));
     } else hide($("#popularSection"));
 
-    if (nav === "free" || nav === "locked") {
-      const list = nav === "free" ? all.filter(p => p.accessType === "Free") : all.filter(p => p.accessType === "Reward Locked");
+    if (nav === "free") {
+      // All prompts are Free now — this filter just shows everything.
       show($("#latest"));
-      $("#latest").querySelector("h2").innerHTML = nav === "free" ? `<i class="ri-unlock-line"></i> Free Prompts` : `<i class="ri-lock-line"></i> Reward Locked`;
-      renderGrid($("#latestGrid"), list);
+      $("#latest").querySelector("h2").innerHTML = `<i class="ri-unlock-line"></i> Free Prompts`;
+      renderGrid($("#latestGrid"), all);
     }
   }
   function renderGrid(container, prompts) {
@@ -1576,7 +1654,6 @@
     $$(".prompt-card", container).forEach(card => {
       const id = card.dataset.id;
       card.querySelector("[data-act='view']")?.addEventListener("click", () => openDetailModal(id));
-      card.querySelector("[data-act='unlock']")?.addEventListener("click", () => openRewardModal(id));
       card.querySelector("[data-act='copy-free']")?.addEventListener("click", () => copyFreePrompt(id));
     });
   }
@@ -1584,16 +1661,10 @@
     const cat = State.categories.find(c => c.id === p.categoryId);
     const catName = cat ? cat.name : "Uncategorized";
     const catIcon = cat ? (cat.icon || "ri-folder-line") : "ri-folder-line";
-    const isFree = p.accessType !== "Reward Locked";
     const thumb = p.thumbnail ? `<img src="${escapeHtml(p.thumbnail)}" alt="${escapeHtml(p.title)}" loading="lazy" />` : `<img src="${placeholderThumb(p.title)}" alt="" loading="lazy" />`;
-    const lockOverlay = !isFree && !State.unlockedPrompts.has(p.id) ? `<div class="lock-overlay"><i class="ri-lock-line"></i></div>` : "";
-    const actionBtn = isFree
-      ? `<button class="btn btn-ghost" data-act="copy-free"><i class="ri-file-copy-line"></i> Copy</button><button class="btn btn-primary" data-act="view"><i class="ri-eye-line"></i> View</button>`
-      : (State.unlockedPrompts.has(p.id)
-          ? `<button class="btn btn-primary" data-act="view"><i class="ri-eye-line"></i> View</button>`
-          : `<button class="btn btn-primary" data-act="unlock"><i class="ri-lock-unlock-line"></i> Unlock</button>`);
+    const actionBtn = `<button class="btn btn-ghost" data-act="copy-free"><i class="ri-file-copy-line"></i> Copy</button><button class="btn btn-primary" data-act="view"><i class="ri-eye-line"></i> View</button>`;
     return `<article class="prompt-card" data-id="${escapeHtml(p.id)}">
-      <div class="prompt-thumb">${thumb}${lockOverlay}</div>
+      <div class="prompt-thumb">${thumb}</div>
       <div class="prompt-body">
         <div class="prompt-meta"><span><i class="${escapeHtml(catIcon)}"></i> ${escapeHtml(catName)}</span><span class="dot"></span><span>${escapeHtml(p.type || "Text")}</span></div>
         <h3 class="prompt-title">${escapeHtml(p.title)}</h3>
@@ -1601,7 +1672,7 @@
         <div class="prompt-actions">${actionBtn}</div>
         <div class="prompt-meta" style="margin-top:8px;font-size:.7rem;">
           <span><i class="ri-eye-line"></i> ${formatNum(p.views||0)}</span><span class="dot"></span><span><i class="ri-file-copy-line"></i> ${formatNum(p.copies||0)}</span>
-          ${isFree ? `<span class="badge badge-free"><i class="ri-unlock-line"></i> Free</span>` : (State.unlockedPrompts.has(p.id) ? `<span class="badge badge-free"><i class="ri-check-line"></i> Unlocked</span>` : `<span class="badge badge-locked"><i class="ri-lock-line"></i> Locked</span>`)}
+          ${p.featured?`<span class="badge badge-featured"><i class="ri-star-line"></i> Featured</span>`:""}
         </div>
       </div></article>`;
   }
@@ -1636,7 +1707,10 @@
     State.activeCategory = (State.activeCategory === catId) ? null : catId;
     State.activeNav = "home";
     $$("[data-nav]").forEach(b => b.classList.toggle("active", b.dataset.nav === "home"));
-    renderCategories(); renderCategoryChips(); renderAllSections();
+    renderCategories();
+    renderCategoryChips();
+    renderUserDrawerCategories();
+    renderAllSections();
   }
   function handleSearch(value) {
     const q = (value || "").trim();
@@ -1651,32 +1725,21 @@
     if (!p) return showToast("Prompt not found.", "error");
     const cat = State.categories.find(c => c.id === p.categoryId);
     const catName = cat ? cat.name : "Uncategorized";
-    const isFree = p.accessType !== "Reward Locked";
-    const isUnlocked = State.unlockedPrompts.has(p.id);
     const thumb = p.thumbnail ? `<img src="${escapeHtml(p.thumbnail)}" alt="${escapeHtml(p.title)}" />` : `<img src="${placeholderThumb(p.title)}" alt="" />`;
-    let contentBox;
-    if (isFree) {
-      const text = p.freeContent || "[Free content not yet published by admin.]";
-      contentBox = `<div class="prompt-text-box" id="promptTextBox">${escapeHtml(text)}</div>
+    // All prompts are Free now — text is always shown.
+    const text = p.fullContent || p.freeContent || "[Prompt text not yet saved by admin.]";
+    const contentBox = `<div class="prompt-text-box" id="promptTextBox">${escapeHtml(text)}</div>
         <div style="display:flex;gap:8px"><button class="btn btn-ghost" id="shareBtn"><i class="ri-share-line"></i> Share</button><button class="btn btn-primary" id="copyPromptBtn" style="flex:2"><i class="ri-file-copy-line"></i> Copy Prompt</button></div>`;
-    } else if (isUnlocked) {
-      contentBox = `<div class="prompt-text-box" id="promptTextBox"><span class="spinner"></span> Loading…</div>
-        <div style="display:flex;gap:8px"><button class="btn btn-ghost" id="shareBtn"><i class="ri-share-line"></i> Share</button><button class="btn btn-primary" id="copyPromptBtn" style="flex:2" disabled><i class="ri-file-copy-line"></i> Copy Prompt</button></div>`;
-      fetchLockedContent(p.id);
-    } else {
-      contentBox = `<div class="prompt-text-locked"><span class="lock-ico">🔒</span><p>This prompt is reward-locked.</p><button class="btn btn-primary" id="unlockFromDetailBtn" style="margin-top:10px"><i class="ri-lock-unlock-line"></i> Watch Ad &amp; Unlock</button></div>`;
-    }
     const related = State.prompts.filter(x => x.id !== p.id && x.categoryId === p.categoryId).slice(0,4)
       .map(x => `<div class="related-prompt" data-rel="${escapeHtml(x.id)}">${escapeHtml(x.title)}</div>`).join("");
     $("#detailTitle").textContent = p.title;
     $("#detailBody").innerHTML = `
       <div class="detail-thumb">${thumb}</div>
       <div class="detail-meta">
-        <span class="badge ${isFree?'badge-free':'badge-locked'}"><i class="${isFree?'ri-unlock-line':'ri-lock-line'}"></i> ${escapeHtml(p.accessType)}</span>
         <span class="badge badge-free"><i class="ri-folder-line"></i> ${escapeHtml(catName)}</span>
         <span class="badge badge-free"><i class="ri-article-line"></i> ${escapeHtml(p.type || "Text")}</span>
         ${p.featured?`<span class="badge badge-featured"><i class="ri-star-line"></i> Featured</span>`:""}
-        ${p.popular?`<span class="badge badge-locked"><i class="ri-fire-line"></i> Popular</span>`:""}
+        ${p.popular?`<span class="badge badge-featured"><i class="ri-fire-line"></i> Popular</span>`:""}
       </div>
       <div class="detail-desc">${escapeHtml(p.description || "")}</div>
       <div class="detail-stats">
@@ -1690,8 +1753,6 @@
     `;
     const copyBtn = $("#copyPromptBtn"); if (copyBtn) copyBtn.addEventListener("click", () => copyPromptFromModal(p));
     const shareBtn = $("#shareBtn"); if (shareBtn) shareBtn.addEventListener("click", () => sharePrompt(p));
-    const unlockBtn = $("#unlockFromDetailBtn");
-    if (unlockBtn) unlockBtn.addEventListener("click", () => { closeDetailModal(); openRewardModal(p.id); });
     $$(".related-prompt", $("#detailBody")).forEach(el => el.addEventListener("click", () => {
       const id = el.dataset.rel; closeDetailModal(); openDetailModal(id);
     }));
@@ -1840,40 +1901,32 @@
     } catch (e) { return { verified: false, error: e.message }; }
   }
 
-  // ---- Fetch locked content ----
-  // Tries the Cloud Function endpoint first (production mode).
-  // Falls back to a direct Firebase read (demo mode without Cloud
-  // Functions) — requires the rules to allow public read on
-  // prompts_private. See database.rules.json for the demo-mode rules.
+  // ---- Fetch the prompt's fullContent (now lives in prompts_public) ----
+  // Used as a fallback when State.prompts doesn't have the prompt
+  // loaded yet (e.g., direct link ?p=ID where the full prompt isn't
+  // in the initial load).
   async function fetchLockedContent(promptId) {
     const box = $("#promptTextBox");
     const copyBtn = $("#copyPromptBtn");
     let content = null;
     let lastError = null;
 
-    // ----- Attempt 1: Cloud Function (production) -----
-    try {
-      const res = await fetch("/api/getLockedContent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promptId, deviceToken: getDeviceToken() })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.content) content = data.content;
-      } else if (res.status !== 404) {
-        lastError = `HTTP ${res.status}`;
-      }
-    } catch (e) {
-      // Network error / function not deployed — fall through to direct read
-      lastError = e.message;
+    // ----- Attempt 1: Look in the already-loaded State.prompts -----
+    const fromState = State.prompts.find(x => x.id === promptId);
+    if (fromState && (fromState.fullContent || fromState.freeContent)) {
+      content = fromState.fullContent || fromState.freeContent;
     }
 
-    // ----- Attempt 2: Direct Firebase read (demo mode) -----
+    // ----- Attempt 2: Direct Firebase read of prompts_public/<id>/fullContent -----
     if (!content && db) {
       try {
-        const snap = await db.ref("PROMPT_MANAGER/prompts_private/" + promptId + "/fullContent").once("value");
+        const snap = await db.ref("PROMPT_MANAGER/prompts_public/" + promptId + "/fullContent").once("value");
         content = snap.val();
+        if (!content) {
+          // Backward-compat: legacy prompts may still store under freeContent
+          const snap2 = await db.ref("PROMPT_MANAGER/prompts_public/" + promptId + "/freeContent").once("value");
+          content = snap2.val();
+        }
       } catch (e) {
         lastError = e.message || "Permission denied";
       }
@@ -1886,34 +1939,30 @@
     } else {
       if (box) box.textContent =
         "[Unable to load prompt content.] " +
-        "Make sure (a) the admin saved the full prompt text when creating the locked prompt, " +
-        "and (b) the database rules allow public reads of prompts_private (demo mode). " +
+        "Make sure the admin saved the full prompt text when creating the prompt. " +
         "Last error: " + (lastError || "none");
     }
   }
 
   // ---- Copy / share ----
   async function copyPromptFromModal(p) {
-    let text = "";
-    if (p.accessType === "Free") text = p.freeContent || "";
-    else if (State.unlockedPrompts.has(p.id)) {
-      const box = $("#promptTextBox");
-      text = box ? box.textContent : "";
-    } else { showToast("Please unlock the prompt first.", "error"); return; }
+    // All prompts are Free now — text is in fullContent (legacy fallback: freeContent).
+    const text = p.fullContent || p.freeContent || "";
     if (!text) { showToast("No prompt text available yet.", "error"); return; }
     try {
       await copyToClipboard(text);
-      showToast("Prompt copied to clipboard!", "success");
       incrementStat(p.id, "copies");
       p.copies = (p.copies || 0) + 1;
+      showToast("Prompt copied to clipboard!", "success");
     } catch (e) { showToast("Copy failed: " + e.message, "error"); }
   }
   async function copyFreePrompt(promptId) {
     const p = State.prompts.find(x => x.id === promptId);
-    if (!p || p.accessType !== "Free") return;
-    if (!p.freeContent) { showToast("No prompt text available yet.", "error"); return; }
+    if (!p) return;
+    const text = p.fullContent || p.freeContent || "";
+    if (!text) { showToast("No prompt text available yet.", "error"); return; }
     try {
-      await copyToClipboard(p.freeContent);
+      await copyToClipboard(text);
       showToast("Prompt copied!", "success");
       incrementStat(p.id, "copies");
       p.copies = (p.copies || 0) + 1;
@@ -1934,6 +1983,14 @@
   function persistSessionUnlock(promptId, expiresAt) {
     let data = JSON.parse(localStorage.getItem("pm_unlocks") || "{}");
     data[promptId] = expiresAt || (Date.now() + (REWARD_AD_CONFIG.unlockDurationMs || 86400000));
+    localStorage.setItem("pm_unlocks", JSON.stringify(data));
+  }
+  // Remove a single prompt's unlock from localStorage (called when
+  // the unlock is consumed — i.e. after a successful copy of a
+  // reward-locked prompt).
+  function removeSessionUnlock(promptId) {
+    const data = JSON.parse(localStorage.getItem("pm_unlocks") || "{}");
+    delete data[promptId];
     localStorage.setItem("pm_unlocks", JSON.stringify(data));
   }
   function restoreSessionUnlocks() {
@@ -1987,10 +2044,28 @@
       showAdminLogin();
       showToast("Signed out.", "info");
     });
+    $("#adminDrawerSignOut")?.addEventListener("click", () => {
+      closeAdminDrawer();
+      sessionStorage.removeItem("pm_admin_email");
+      AdminState.user = null;
+      showAdminLogin();
+      showToast("Signed out.", "info");
+    });
+    $("#adminHamburger")?.addEventListener("click", openAdminDrawer);
+    $("#adminDrawerClose")?.addEventListener("click", closeAdminDrawer);
+    $("#adminDrawerOverlay")?.addEventListener("click", closeAdminDrawer);
     $("#loginBtn")?.addEventListener("click", doLogin);
     $("#loginPassword")?.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
 
-    $$(".sidebar-link[data-section]").forEach(link => link.addEventListener("click", () => goSection(link.dataset.section)));
+    $$(".sidebar-link[data-section]").forEach(link => link.addEventListener("click", () => {
+      goSection(link.dataset.section);
+      closeAdminDrawer();
+    }));
+    // Wire up drawer links too (they use data-section like the sidebar links)
+    $$("#adminDrawer [data-section]").forEach(link => link.addEventListener("click", () => {
+      goSection(link.dataset.section);
+      closeAdminDrawer();
+    }));
     $("#addPromptBtn")?.addEventListener("click", () => { resetPromptForm(); goSection("new-prompt"); });
     $("#addCatBtn")?.addEventListener("click", () => openCatModal(null));
 
@@ -2022,24 +2097,6 @@
     $$("[data-close-cat]").forEach(b => b.addEventListener("click", closeCatModal));
     $("#catModalOverlay")?.addEventListener("click", e => { if (e.target.id === "catModalOverlay") closeCatModal(); });
 
-    $("#adSettingsForm")?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const data = {
-        provider: $("#adProvider").value, placementId: $("#adPlacementId").value.trim(),
-        enabled: !!$("#adEnabled").checked, rewardUnlockEnabled: !!$("#rewardUnlockEnabled").checked,
-        unlockDurationMs: Number($("#adUnlockDuration").value) || 86400000,
-        dailyUnlockLimit: Number($("#adDailyLimit").value) || 20,
-        adErrorMessage: $("#adErrorMsg").value.trim() || "No ad available right now. Please try again later.",
-        // Custom video fields
-        customVideoUrl: $("#customVideoUrl").value.trim(),
-        customVideoType: $("#customVideoType").value,
-        customVideoDurationSec: Number($("#customVideoDuration").value) || 30,
-        customVideoTitle: $("#customVideoTitle").value.trim() || "Sponsored Video"
-      };
-      try { await db.ref("PROMPT_MANAGER/settings/rewardAd").set(data); showToast("Ad settings saved.", "success"); }
-      catch (e) { showToast("Save failed: " + e.message, "error"); }
-    });
-
     $("#confirmCancel")?.addEventListener("click", closeConfirm);
     $("#confirmOk")?.addEventListener("click", () => { if (AdminState.pendingConfirm) AdminState.pendingConfirm(); closeConfirm(); });
     $("#confirmOverlay")?.addEventListener("click", e => { if (e.target.id === "confirmOverlay") closeConfirm(); });
@@ -2058,6 +2115,24 @@
     } else {
       AdminState.user = null;
       if (location.hash === "#admin") showAdminLogin();
+    }
+  }
+
+  // ---- Admin mobile drawer ----
+  function openAdminDrawer() {
+    // Highlight the currently-active section link
+    $$("#adminDrawer [data-section]").forEach(l => {
+      l.classList.toggle("active", l.dataset.section === currentSection());
+    });
+    $("#adminDrawer")?.classList.add("active");
+    $("#adminDrawerOverlay")?.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+  function closeAdminDrawer() {
+    $("#adminDrawer")?.classList.remove("active");
+    $("#adminDrawerOverlay")?.classList.remove("active");
+    if (!document.querySelector(".modal-overlay.active")) {
+      document.body.style.overflow = "";
     }
   }
 
@@ -2099,12 +2174,9 @@
     $$(".admin-section").forEach(s => s.classList.toggle("active", s.dataset.section === name));
     if (name === "featured") renderFilteredTable($("#featuredTableBody"), p => p.featured);
     if (name === "free") renderFilteredTable($("#freeTableBody"), p => p.accessType === "Free");
-    if (name === "locked") renderFilteredTable($("#lockedTableBody"), p => p.accessType === "Reward Locked");
     if (name === "prompts") renderPromptsTable();
     if (name === "dashboard") renderDashboard();
     if (name === "categories") renderCategoriesGrid();
-    if (name === "rewards") renderRewardMonitor();
-    if (name === "ad-settings") fillAdSettingsForm();
   }
   function currentSection() {
     const a = document.querySelector(".admin-section.active"); return a ? a.dataset.section : "dashboard";
@@ -2116,19 +2188,6 @@
       AdminState.categories = Object.values(d).sort((a,b)=>(a.displayOrder||0)-(b.displayOrder||0));
       populateAdminCategoryDropdowns();
       if (currentSection() === "categories") renderCategoriesGrid();
-    });
-  }
-  function loadAdminRewardEventsRT() {
-    db.ref("PROMPT_MANAGER/reward_events").limitToLast(50).on("value", snap => {
-      const d = snap.val() || {};
-      AdminState.rewardEvents = Object.entries(d).map(([k,v])=>({key:k,...v})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-      if (currentSection() === "rewards") renderRewardMonitor();
-    });
-  }
-  function loadAdminSettingsRT() {
-    db.ref("PROMPT_MANAGER/settings").on("value", snap => {
-      AdminState.settings = snap.val() || {};
-      fillAdSettingsForm();
     });
   }
 
@@ -2152,27 +2211,19 @@
       q.addEventListener("input", debounce(() => { AdminState.filter.q = q.value; renderPromptsTable(); }, 250));
       q.dataset.bound = "1";
     }
-    const acc = $("#filterAccess");
-    if (acc && !acc.dataset.bound) { acc.addEventListener("change", () => { AdminState.filter.access = acc.value; renderPromptsTable(); }); acc.dataset.bound = "1"; }
     const pub = $("#filterPublished");
     if (pub && !pub.dataset.bound) { pub.addEventListener("change", () => { AdminState.filter.published = pub.value; renderPromptsTable(); }); pub.dataset.bound = "1"; }
   }
 
   function renderDashboard() {
     const total = AdminState.prompts.length;
-    const free = AdminState.prompts.filter(p => p.accessType === "Free").length;
-    const locked = AdminState.prompts.filter(p => p.accessType === "Reward Locked").length;
     const views = AdminState.prompts.reduce((s,p)=>s + (p.views||0), 0);
     const copies = AdminState.prompts.reduce((s,p)=>s + (p.copies||0), 0);
-    const verified = AdminState.rewardEvents.filter(e => e.status === "verified").length;
     const stats = [
       {label:"Total Prompts", value: total, icon: "ri-stack-line"},
       {label:"Total Categories", value: AdminState.categories.length, icon: "ri-folders-line"},
-      {label:"Free Prompts", value: free, icon: "ri-unlock-line"},
-      {label:"Locked Prompts", value: locked, icon: "ri-lock-line"},
       {label:"Total Views", value: formatNum(views), icon: "ri-eye-line"},
       {label:"Total Copies", value: formatNum(copies), icon: "ri-file-copy-line"},
-      {label:"Verified Reward Unlocks", value: verified, icon: "ri-medal-line"},
     ];
     $("#dashStats").innerHTML = stats.map(s => `
       <div class="stat-card">
@@ -2191,9 +2242,8 @@
       list = list.filter(p => (p.title||"").toLowerCase().includes(q) || (p.id||"").toLowerCase().includes(q) || (p.description||"").toLowerCase().includes(q));
     }
     if (AdminState.filter.cat) list = list.filter(p => p.categoryId === AdminState.filter.cat);
-    if (AdminState.filter.access) list = list.filter(p => p.accessType === AdminState.filter.access);
     if (AdminState.filter.published !== "") list = list.filter(p => String(!!p.published) === AdminState.filter.published);
-    if (!list.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty">No prompts match your filters.</td></tr>`; return; }
+    if (!list.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty">No prompts match your filters.</td></tr>`; return; }
     tbody.innerHTML = list.map(promptRow).join("");
     $$("#promptsTableBody [data-edit]").forEach(b => b.addEventListener("click", () => editPrompt(b.dataset.edit)));
     $$("#promptsTableBody [data-del]").forEach(b => b.addEventListener("click", () => deletePrompt(b.dataset.del)));
@@ -2207,7 +2257,6 @@
       <td><div style="display:flex;align-items:center;gap:10px">${thumb}<div><div class="cell-title">${escapeHtml(p.title)}</div><div class="cell-meta">${escapeHtml(p.id)}</div></div></div></td>
       <td>${escapeHtml(catName)}</td>
       <td>${escapeHtml(p.type || "Text")}</td>
-      <td>${p.accessType === "Free" ? `<span class="badge badge-free">Free</span>` : `<span class="badge badge-locked">Locked</span>`}</td>
       <td><span class="cell-meta"><i class="ri-eye-line"></i> ${formatNum(p.views||0)} · <i class="ri-file-copy-line"></i> ${formatNum(p.copies||0)}</span></td>
       <td>${p.published ? `<span class="badge badge-published">Published</span>` : `<span class="badge badge-unpublished">Unpublished</span>`}${p.featured?`<span class="badge badge-featured" style="margin-left:4px"><i class="ri-star-line"></i></span>`:""}</td>
       <td><div class="row-actions">
@@ -2221,7 +2270,7 @@
     if (!container) return;
     const list = AdminState.prompts.filter(predicate);
     if (!list.length) { container.innerHTML = `<div class="empty">No prompts here yet.</div>`; return; }
-    container.innerHTML = `<table class="data"><thead><tr><th>Prompt</th><th>Category</th><th>Access</th><th>Stats</th><th>Actions</th></tr></thead><tbody>${list.map(promptRow).join("")}</tbody></table>`;
+    container.innerHTML = `<table class="data"><thead><tr><th>Prompt</th><th>Category</th><th>Stats</th><th>Actions</th></tr></thead><tbody>${list.map(promptRow).join("")}</tbody></table>`;
     $$("[data-edit]", container).forEach(b => b.addEventListener("click", () => editPrompt(b.dataset.edit)));
     $$("[data-del]", container).forEach(b => b.addEventListener("click", () => deletePrompt(b.dataset.del)));
   }
@@ -2246,68 +2295,91 @@
     const file = e.target.files[0];
     if (!file) return;
 
-    // ----- 1. Show preview immediately (data URL) -----
-    const reader = new FileReader();
-    reader.onload = () => {
-      $("#thumbPreview").src = reader.result;
-      $("#thumbPreview").style.display = "block";
-    };
-    reader.readAsDataURL(file);
-
-    // ----- 2. Try Firebase Storage first (handles ANY file size) -----
-    if (storage) {
-      try {
-        const path = `thumbnails/${Date.now()}_${file.name}`;
-        const ref = storage.ref(path);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
-        $("#thumbnail").value = url;
-        showToast(`Thumbnail uploaded to Firebase Storage (${(file.size / 1024 / 1024).toFixed(2)} MB).`, "success");
-        return;
-      } catch (err) {
-        console.warn("Firebase Storage upload failed, falling back to base64:", err);
-        // Fall through to base64 fallback below
-      }
-    }
-
-    // ----- 3. Fallback: base64 data URL stored directly in the
-    //         Realtime Database (works without Firebase Storage setup) -----
-    // RTDB writes get slow beyond ~10MB, so cap base64 at 10MB.
-    if (file.size > 10 * 1024 * 1024) {
-      showToast("Image is larger than 10 MB. To upload larger images, enable Firebase Storage and set its rules to allow public writes.", "error", 6000);
-      return;
-    }
+    // Read the file as a data URL — we ALWAYS use base64 (no Firebase Storage).
+    // Then resize to 100x100 px via <canvas> so the stored string is small
+    // (~1-3 KB) regardless of the original upload size.
+    let dataUrl;
     try {
-      const dataUrl = await new Promise((resolve, reject) => {
+      dataUrl = await new Promise((resolve, reject) => {
         const r = new FileReader();
         r.onload = () => resolve(r.result);
         r.onerror = () => reject(new Error("FileReader failed"));
         r.readAsDataURL(file);
       });
-      $("#thumbnail").value = dataUrl;
-      showToast(`Thumbnail stored as base64 in database (${(file.size / 1024 / 1024).toFixed(2)} MB). Note: very large images slow down page load.`, "info", 5000);
-    } catch (e) {
-      showToast("Upload failed: " + e.message, "error");
+    } catch (err) {
+      showToast("Upload failed: " + err.message, "error");
+      return;
     }
+
+    // Show the original (full-size) preview in the admin form
+    $("#thumbPreview").src = dataUrl;
+    $("#thumbPreview").style.display = "block";
+
+    // Resize to 100×100 (cover — center-crop to fill the square).
+    try {
+      const resized = await resizeImageTo100x100(dataUrl);
+      $("#thumbnail").value = resized;
+      const kb = (resized.length / 1024).toFixed(1);
+      showToast(`Thumbnail resized to 100×100 (${kb} KB base64).`, "success");
+    } catch (err) {
+      // If canvas resize fails for any reason (e.g. CORS-restricted image),
+      // fall back to storing the original data URL.
+      $("#thumbnail").value = dataUrl;
+      showToast("Resize failed, stored original image instead.", "info");
+    }
+  }
+
+  // Helper — resize an image data URL to 100x100 px with cover (center-crop).
+  // Returns a JPEG data URL at 85% quality (smaller than PNG).
+  function resizeImageTo100x100(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const SIZE = 100;
+          const canvas = document.createElement("canvas");
+          canvas.width = SIZE;
+          canvas.height = SIZE;
+          const ctx = canvas.getContext("2d");
+          // Compute source rect with cover (center-crop) behavior
+          const srcAspect = img.width / img.height;
+          let sx = 0, sy = 0, sw = img.width, sh = img.height;
+          if (srcAspect > 1) {
+            // Source is wider than tall → crop the sides
+            sw = img.height;
+            sx = (img.width - sw) / 2;
+          } else if (srcAspect < 1) {
+            // Source is taller than wide → crop top/bottom
+            sh = img.width;
+            sy = (img.height - sh) / 2;
+          }
+          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, SIZE, SIZE);
+          resolve(canvas.toDataURL("image/jpeg", 0.85));
+        } catch (e) { reject(e); }
+      };
+      img.onerror = () => reject(new Error("Image load failed"));
+      img.src = dataUrl;
+    });
   }
   async function savePrompt() {
     const id = generateId("p");
     const now = Date.now();
     const fullContent = $("#fullContent").value;
     const accessType = $("#accessType").value;
+    // ALL prompt text lives in prompts_public/fullContent (publicly
+    // readable). The reward-lock is enforced purely on the UI side.
     const publicNode = {
       id, title: $("#title").value.trim(), categoryId: $("#categoryId").value,
       description: $("#description").value.trim(), thumbnail: $("#thumbnail").value || "",
       type: $("#type").value, accessType, featured: !!$("#featured").checked,
       popular: !!$("#popular").checked, published: !!$("#published").checked,
       displayOrder: Number($("#displayOrder").value) || 0,
+      fullContent,
       createdAt: now, updatedAt: now, views: 0, copies: 0
     };
-    if (accessType === "Free") publicNode.freeContent = fullContent;
     try {
       const updates = {};
       updates[`PROMPT_MANAGER/prompts_public/${id}`] = publicNode;
-      if (accessType === "Reward Locked") updates[`PROMPT_MANAGER/prompts_private/${id}`] = { id, fullContent };
       await db.ref().update(updates);
       showToast("Prompt saved successfully!", "success");
       resetPromptForm(); goSection("prompts");
@@ -2330,12 +2402,18 @@
     $("#published").checked = p.published !== false;
     $("#thumbnail").value = p.thumbnail || "";
     if (p.thumbnail) { $("#thumbPreview").src = p.thumbnail; $("#thumbPreview").style.display = "block"; }
-    if (p.accessType === "Free") {
-      $("#fullContent").value = p.freeContent || "";
+    // Load full prompt text from prompts_public/fullContent
+    // (backward-compat: fall back to legacy freeContent for older prompts).
+    if (p.fullContent) {
+      $("#fullContent").value = p.fullContent;
+    } else if (p.freeContent) {
+      $("#fullContent").value = p.freeContent;
     } else {
+      // Legacy: text was in prompts_private — try one read for backward
+      // compat (rules may or may not still allow it; that's OK).
       db.ref("PROMPT_MANAGER/prompts_private/" + id + "/fullContent").once("value")
-        .then(s => { $("#fullContent").value = s.val() || ""; })
-        .catch(e => showToast("Couldn't load private content: " + e.message, "error"));
+        .then(s => { if (s.val()) $("#fullContent").value = s.val(); })
+        .catch(() => {});
     }
     $("#saveBtn").style.display = "none";
     $("#updateBtn").style.display = "inline-flex";
@@ -2349,21 +2427,22 @@
     const fullContent = $("#fullContent").value;
     const accessType = $("#accessType").value;
     const original = AdminState.prompts.find(x => x.id === id) || {};
+    // Single source of truth: fullContent in prompts_public.
     const publicNode = {
       id, title: $("#title").value.trim(), categoryId: $("#categoryId").value,
       description: $("#description").value.trim(), thumbnail: $("#thumbnail").value || "",
       type: $("#type").value, accessType, featured: !!$("#featured").checked,
       popular: !!$("#popular").checked, published: !!$("#published").checked,
       displayOrder: Number($("#displayOrder").value) || 0,
+      fullContent,
       createdAt: original.createdAt || now, updatedAt: now,
       views: original.views || 0, copies: original.copies || 0
     };
-    if (accessType === "Free") publicNode.freeContent = fullContent;
     try {
       const updates = {};
       updates[`PROMPT_MANAGER/prompts_public/${id}`] = publicNode;
-      if (accessType === "Reward Locked") updates[`PROMPT_MANAGER/prompts_private/${id}`] = { id, fullContent };
-      else updates[`PROMPT_MANAGER/prompts_private/${id}`] = null;
+      // Clean up any legacy prompts_private entry from the old data model.
+      updates[`PROMPT_MANAGER/prompts_private/${id}`] = null;
       await db.ref().update(updates);
       showToast("Prompt updated.", "success");
       resetPromptForm(); goSection("prompts");
@@ -2375,7 +2454,7 @@
       try {
         const updates = {};
         updates[`PROMPT_MANAGER/prompts_public/${id}`] = null;
-        updates[`PROMPT_MANAGER/prompts_private/${id}`] = null;
+        updates[`PROMPT_MANAGER/prompts_private/${id}`] = null;  // legacy cleanup
         await db.ref().update(updates);
         showToast("Prompt deleted.", "success");
         resetPromptForm(); goSection("prompts");
@@ -2435,54 +2514,6 @@
       const c = AdminState.categories.find(x => x.id === b.dataset.editCat);
       if (c) openCatModal(c);
     }));
-  }
-
-  function fillAdSettingsForm() {
-    const s = (AdminState.settings && AdminState.settings.rewardAd) || {};
-    $("#adProvider").value = s.provider || "custom_video";
-    $("#adPlacementId").value = s.placementId || "";
-    $("#adUnlockDuration").value = s.unlockDurationMs || 86400000;
-    $("#adDailyLimit").value = s.dailyUnlockLimit || 20;
-    $("#adErrorMsg").value = s.adErrorMessage || "";
-    $("#adEnabled").checked = !!s.enabled;
-    $("#rewardUnlockEnabled").checked = !!s.rewardUnlockEnabled;
-    // Custom video fields
-    $("#customVideoUrl").value = s.customVideoUrl || "";
-    $("#customVideoType").value = s.customVideoType || "auto";
-    $("#customVideoDuration").value = s.customVideoDurationSec || 30;
-    $("#customVideoTitle").value = s.customVideoTitle || "";
-  }
-
-  function renderRewardMonitor() {
-    const total = AdminState.rewardEvents.length;
-    const verified = AdminState.rewardEvents.filter(e => e.status === "verified").length;
-    const failed = AdminState.rewardEvents.filter(e => e.status === "failed").length;
-    const dupes = AdminState.rewardEvents.filter(e => e.status === "duplicate").length;
-    const stats = [
-      {label:"Reward Requests", value: total, icon: "ri-mail-send-line"},
-      {label:"Verified Completions", value: verified, icon: "ri-check-line"},
-      {label:"Failed Rewards", value: failed, icon: "ri-close-line"},
-      {label:"Duplicate Attempts", value: dupes, icon: "ri-shield-line"},
-    ];
-    $("#rewardStats").innerHTML = stats.map(s => `
-      <div class="stat-card">
-        <div class="stat-top"><div class="stat-ico"><i class="${s.icon}"></i></div></div>
-        <div class="stat-label">${s.label}</div>
-        <div class="stat-value">${s.value}</div>
-      </div>`).join("");
-    const body = $("#rewardEventsBody");
-    if (!AdminState.rewardEvents.length) {
-      body.innerHTML = `<tr><td colspan="5" class="empty">No reward events yet.</td></tr>`;
-      return;
-    }
-    body.innerHTML = AdminState.rewardEvents.slice(0, 20).map(e => `
-      <tr>
-        <td class="cell-meta">${escapeHtml(e.promptId || "—")}</td>
-        <td class="cell-meta">${escapeHtml((e.deviceToken || "").slice(0, 16))}…</td>
-        <td class="cell-meta">${escapeHtml(e.provider || "—")}</td>
-        <td>${e.status === "verified" ? `<span class="badge badge-free">Verified</span>` : e.status === "failed" ? `<span class="badge badge-locked">Failed</span>` : e.status === "duplicate" ? `<span class="badge badge-unpublished">Duplicate</span>` : `<span class="badge badge-published">${escapeHtml(e.status)}</span>`}</td>
-        <td class="cell-meta">${formatDate(e.createdAt)}<br/>${new Date(e.createdAt||0).toLocaleTimeString()}</td>
-      </tr>`).join("");
   }
 
   function openConfirm(title, msg, okLabel, onOk) {
