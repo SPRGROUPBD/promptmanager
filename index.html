@@ -149,7 +149,7 @@
     .modal-overlay.active { display: grid; }
     .modal {
       background: var(--bg-card); border-radius: var(--radius-lg);
-      max-width: 640px; width: 100%; max-height: 92vh; overflow-y: auto;
+      max-width: 640px; width: 100%; max-height: 92dvh; overflow-y: auto;
       box-shadow: var(--shadow-lg); animation: modal-in .25s ease;
     }
     .modal.modal-lg { max-width: 920px; }
@@ -297,57 +297,191 @@
     .cat-chip:hover { color: var(--accent-blue); border-color: var(--accent-blue); transform: translateY(-1px); }
     .cat-chip.active { background: var(--gradient-primary); color: #fff; border-color: transparent; box-shadow: 0 6px 14px rgba(79,107,255,.35); }
 
-    /* Auto-sized responsive grid: columns auto-fit to available width.
-       minmax(240px, 1fr) = each column is at least 240px and stretches
-       to fill any extra horizontal space. The thumbnail image inside
-       each card auto-adjusts to fill its container (object-fit: cover). */
-    .prompts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-    .prompts-grid.list-view { grid-template-columns: 1fr; }
-    /* List view: 190px fixed-height row. Grid: 190px thumbnail (square) | 1fr content | auto actions.
-       We use `display: contents` on the body so its children become direct
-       grid items of the card — then we explicitly place each one in the
-       right grid cell. Title goes in the middle column (visible), actions
-       go in the right column (vertically centered).
-       Card padding is 0 so the thumbnail can fill the full 190×190 square
-       (no padding subtracted from the height). Internal margins are added
-       to body content + actions instead so they don't touch the card edges. */
-    .prompts-grid.list-view .prompt-card { display: grid; grid-template-columns: 190px 1fr auto; gap: 14px; padding: 0; height: 190px; overflow: hidden; }
-    .prompts-grid.list-view .prompt-thumb { height: 190px; min-height: 0; }
-    .prompts-grid.list-view .prompt-body { display: contents; }
-    /* Place body children in the grid + add edge spacing: */
-    .prompts-grid.list-view .prompt-body > .prompt-meta:first-child { grid-column: 2; grid-row: 1; align-self: start; margin-top: 14px; }
-    .prompts-grid.list-view .prompt-body > .prompt-title { grid-column: 2; grid-row: 2; align-self: center; -webkit-line-clamp: 2; }
-    .prompts-grid.list-view .prompt-body > .prompt-desc { display: none; }  /* hide description in list view */
-    .prompts-grid.list-view .prompt-body > .prompt-actions { grid-column: 3; grid-row: 1 / span 2; align-self: center; flex-direction: column; gap: 8px; margin-right: 14px; }
-    .prompts-grid.list-view .prompt-body > .prompt-actions .btn { flex: 0 0 auto; width: auto; min-width: 90px; }
-    .prompts-grid.list-view .prompt-body > .prompt-meta:last-child { grid-column: 2; grid-row: 3; align-self: end; margin-bottom: 14px; }
-
+    /* ===================================================================
+       PROMPT CARD  (clean 3-element structure: thumb | content | actions)
+       Uses theme variables. Grid view = vertical, List view = horizontal.
+       =================================================================== */
     .prompt-card {
-      background: var(--bg-card); border-radius: var(--radius-md); overflow: hidden;
-      border: 1px solid rgba(0,0,0,.06); box-shadow: var(--shadow-sm);
-      display: flex; flex-direction: column;
+      display: grid;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid rgba(0,0,0,.06);
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      box-shadow: var(--shadow-sm);
+      box-sizing: border-box;
       transition: transform var(--transition), box-shadow var(--transition);
-      /* No fixed width — let the grid auto-size it. */
     }
     .prompt-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-    /* Thumbnail container: 192px tall, fills the card width. Uses flex
-       so the <img>/<video> can reliably fill the area with object-fit: cover. */
-    .prompt-thumb {
-      width: 100%; height: 192px; background: var(--gradient-soft);
-      position: relative; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--accent-purple); font-size: 2.5rem;
-    }
-    .prompt-thumb img, .prompt-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .prompt-thumb .lock-overlay { position: absolute; inset: 0; background: rgba(10, 15, 36, .55); display: grid; place-items: center; color: #fff; font-size: 1.6rem; backdrop-filter: blur(2px); }
 
-    .prompt-body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; }
-    .prompt-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: .72rem; color: var(--text-muted); margin-bottom: 6px; }
-    .prompt-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-muted); }
-    .prompt-title { font-size: 1rem; font-weight: 700; letter-spacing: -.01em; margin-bottom: 6px; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .prompt-desc { font-size: .84rem; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 12px; flex: 1; }
-    .prompt-actions { display: flex; gap: 8px; margin-top: 8px; }
-    .prompt-actions .btn { flex: 1; padding: 9px 16px; font-size: .82rem; }
+    /* The thumbnail element (works for both <img> AND <video>) */
+    .thumb {
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+      background: var(--gradient-soft);
+    }
+
+    /* Content column — holds tags, title, description, stats */
+    .prompt-content {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tags span {
+      background: rgba(79,107,255,.14);
+      color: var(--accent-blue);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: .72rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .tags span.featured-tag {
+      background: rgba(155,107,255,.14);
+      color: var(--accent-purple);
+    }
+    .prompt-title {
+      font-size: 1rem;
+      line-height: 1.4;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text-primary);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .prompt-desc {
+      font-size: .84rem;
+      color: var(--text-secondary);
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: .76rem;
+      color: var(--text-muted);
+    }
+    .stats span { display: inline-flex; align-items: center; gap: 4px; }
+
+    /* Actions column — Copy + View buttons */
+    .actions { display: flex; gap: 8px; }
+    .actions button {
+      padding: 9px 14px;
+      border: 0;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: .85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all var(--transition);
+    }
+    .actions .btn-copy {
+      background: var(--gradient-primary);
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(79,107,255,.3);
+    }
+    .actions .btn-copy:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(79,107,255,.4); }
+    .actions .btn-view {
+      background: var(--gradient-soft);
+      color: var(--text-primary);
+    }
+    .actions .btn-view:hover { background: rgba(79,107,255,.1); }
+
+    /* ============= GRID VIEW (vertical card — default) ============= */
+    .prompts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+    .prompts-grid .prompt-card {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
+      padding: 12px;
+      gap: 12px;
+    }
+    /* aspect-ratio is more responsive than fixed height — thumb scales with card width */
+    .prompts-grid .thumb { width: 100%; aspect-ratio: 1.5; }
+    .prompts-grid .prompt-content { flex: 1; }
+    .prompts-grid .stats { margin-top: auto; }
+    .prompts-grid .actions { flex-direction: row; grid-template-columns: 1fr 1fr; }
+    .prompts-grid .actions button { flex: 1; }
+
+    /* ============= LIST VIEW (horizontal row — your design) ============= */
+    .prompts-grid.list-view { grid-template-columns: 1fr; gap: 12px; }
+    .prompts-grid.list-view .prompt-card {
+      grid-template-columns: 190px minmax(0, 1fr) auto;
+      grid-template-rows: auto;
+      align-items: center;
+      height: 190px;
+      padding: 14px;
+      overflow: hidden;
+    }
+    .prompts-grid.list-view .thumb {
+      width: 190px;
+      height: 190px;
+    }
+    .prompts-grid.list-view .prompt-content {
+      height: 190px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      align-items: center;
+      gap: 0;
+    }
+    .prompts-grid.list-view .prompt-desc { display: none; }   /* hide description in list view */
+    .prompts-grid.list-view .actions {
+      flex-direction: column;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      min-width: 90px;
+    }
+    .prompts-grid.list-view .actions button {
+      flex: 0 0 auto;
+      min-width: 90px;
+      padding: 10px 15px;
+      font-size: .9rem;
+    }
+
+    /* Mobile responsive for list view (≤650px) */
+    @media (max-width: 650px) {
+      .prompts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+      .prompts-grid .prompt-card { padding: 8px; gap: 8px; }
+      .prompts-grid .thumb { aspect-ratio: 1; }    /* square thumbs on mobile grid view */
+      .prompts-grid .prompt-title { font-size: 13px; }
+      .prompts-grid .tags span { font-size: 9px; padding: 3px 5px; }
+      .prompts-grid .stats { font-size: 10px; gap: 6px; }
+      .prompts-grid .actions button { font-size: 11px; padding: 8px 4px; }
+
+      .prompts-grid.list-view .prompt-card {
+        grid-template-columns: 90px minmax(0,1fr) auto;
+        gap: 8px;
+        padding: 9px;
+        height: 140px;
+      }
+      .prompts-grid.list-view .thumb { width: 90px; height: 90px; }
+      .prompts-grid.list-view .prompt-content { height: 90px; }
+      .prompts-grid.list-view .prompt-title { font-size: 12px; }
+      .prompts-grid.list-view .tags span { font-size: 9px; padding: 3px 5px; }
+      .prompts-grid.list-view .stats { font-size: 10px; gap: 6px; }
+      .prompts-grid.list-view .actions { min-width: 52px; gap: 6px; }
+      .prompts-grid.list-view .actions button { padding: 7px 5px; font-size: 10px; min-width: 50px; }
+    }
+    @media (max-width: 370px) {
+      .prompts-grid { grid-template-columns: 1fr; }
+    }
 
     .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
     .stat-card { background: var(--bg-card); padding: 16px 18px; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,.06); box-shadow: var(--shadow-sm); }
@@ -363,7 +497,7 @@
     .detail-desc { color: var(--text-secondary); margin-bottom: 16px; font-size: .92rem; }
     .detail-stats { display: flex; gap: 16px; padding: 12px 16px; background: var(--bg-main); border-radius: var(--radius-sm); margin-bottom: 16px; font-size: .85rem; color: var(--text-secondary); }
     .detail-stats strong { color: var(--text-primary); font-weight: 700; margin-right: 4px; }
-    .prompt-text-box { background: var(--bg-main); padding: 16px 18px; border-radius: var(--radius-md); font-family: "JetBrains Mono", monospace; font-size: .86rem; color: var(--text-primary); white-space: pre-wrap; word-break: break-word; max-height: 320px; overflow-y: auto; margin-bottom: 16px; border: 1px dashed rgba(79,107,255,.3); }
+    .prompt-text-box { background: var(--bg-main); padding: 15px 18px; border-radius: var(--radius-md); font-family: "JetBrains Mono", monospace; font-size: .86rem; color: var(--text-primary); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; max-height: 320px; overflow-y: auto; margin-bottom: 16px; border: 1px dashed rgba(79,107,255,.3); user-select: text; }
     .prompt-text-locked { background: var(--bg-main); padding: 26px 18px; border-radius: var(--radius-md); text-align: center; color: var(--text-secondary); margin-bottom: 16px; border: 1px dashed rgba(234, 88, 12, .35); }
     .prompt-text-locked .lock-ico { font-size: 2.4rem; margin-bottom: 8px; display: block; }
     .related-prompts { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
@@ -563,12 +697,6 @@
       .stat-strip { grid-template-columns: repeat(2, 1fr); }
       .hero { padding: 24px 22px; }
       .hero h1 { font-size: 1.4rem; }
-      /* Mobile: 2-column auto-sized grid (each column stretches to fill) */
-      .prompts-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-      .prompts-grid.list-view .prompt-card { grid-template-columns: 90px 1fr auto; height: 140px; }
-      .prompts-grid.list-view .prompt-body > .prompt-actions { flex-direction: column; gap: 6px; }
-      .prompts-grid.list-view .prompt-body > .prompt-actions .btn { min-width: 70px; font-size: .76rem; padding: 6px 10px; }
-      .prompt-thumb { height: 120px; }
       .admin-body { grid-template-columns: 1fr; }
       .admin-sidebar { display: none; }
       .form-grid { grid-template-columns: 1fr; }
@@ -578,11 +706,6 @@
       .admin-app .header-row > .btn-ghost { display: none; }
     }
     @media (max-width: 480px) {
-      .prompts-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-      .prompt-card { font-size: .82rem; }
-      .prompt-title { font-size: .86rem; }
-      .prompt-thumb { height: 110px; }
-      .prompt-desc { -webkit-line-clamp: 1; font-size: .76rem; }
       .search-box input { font-size: .85rem; }
       .toast-container { left: 16px; right: 16px; bottom: 90px; }
       .toast { max-width: none; }
@@ -591,6 +714,12 @@
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-thumb { background: rgba(79,107,255,.35); border-radius: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
+
+    /* Accessibility: visible focus outline for keyboard navigation */
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(79,107,255,.5);
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body>
@@ -1432,7 +1561,8 @@
     categories: [],
     prompts: [],
     settings: null,
-    view: "grid",
+    // View preference persisted to localStorage (so reload keeps grid/list choice)
+    view: localStorage.getItem("pm_view") === "list" ? "list" : "grid",
     activeCategory: null,
     activeNav: "home",
     searchQuery: "",
@@ -1497,6 +1627,8 @@
       closeUserDrawer();
     }));
     $$(".view-toggle button").forEach(btn => btn.addEventListener("click", () => setView(btn.dataset.view)));
+    // Reflect the saved view preference in the toggle buttons on page load
+    $$(".view-toggle button").forEach(b => b.classList.toggle("active", b.dataset.view === State.view));
 
     const searchInput = $("#searchInput");
     if (searchInput) {
@@ -1612,7 +1744,7 @@
   // ---- Skeletons ----
   function showSkeletons() {
     const skel = (n=6) => Array.from({length:n}, () =>
-      `<div class="prompt-card"><div class="prompt-thumb skeleton" style="height:160px"></div><div class="prompt-body"><div class="skeleton skeleton-line" style="width:60%"></div><div class="skeleton skeleton-line" style="width:80%"></div><div class="skeleton skeleton-line" style="width:40%"></div></div></div>`).join("");
+      `<div class="prompt-card"><div class="thumb skeleton" style="height:160px"></div><div class="prompt-content"><div class="skeleton skeleton-line" style="width:60%"></div><div class="skeleton skeleton-line" style="width:80%"></div><div class="skeleton skeleton-line" style="width:40%"></div></div></div>`).join("");
     $("#latestGrid").innerHTML = skel();
     $("#featuredGrid").innerHTML = skel(4);
     $("#popularGrid").innerHTML = skel(4);
@@ -1686,20 +1818,28 @@
     const cat = State.categories.find(c => c.id === p.categoryId);
     const catName = cat ? cat.name : "Uncategorized";
     const catIcon = cat ? (cat.icon || "ri-folder-line") : "ri-folder-line";
-    const thumb = renderThumbElement(p.thumbnail, p.title);
-    const actionBtn = `<button class="btn btn-ghost" data-act="copy-free"><i class="ri-file-copy-line"></i> Copy</button><button class="btn btn-primary" data-act="view"><i class="ri-eye-line"></i> View</button>`;
+    const thumb = renderThumbElement(p.thumbnail, p.title);  // returns <img class="thumb"> or <video class="thumb">
     return `<article class="prompt-card" data-id="${escapeHtml(p.id)}">
-      <div class="prompt-thumb">${thumb}</div>
-      <div class="prompt-body">
-        <div class="prompt-meta"><span><i class="${escapeHtml(catIcon)}"></i> ${escapeHtml(catName)}</span><span class="dot"></span><span>${escapeHtml(p.type || "Text")}</span></div>
+      ${thumb}
+      <div class="prompt-content">
+        <div class="tags">
+          <span><i class="${escapeHtml(catIcon)}"></i> ${escapeHtml(catName)}</span>
+          <span>${escapeHtml(p.type || "Text")}</span>
+          ${p.featured?`<span class="featured-tag"><i class="ri-star-line"></i> Featured</span>`:""}
+          ${p.popular?`<span class="featured-tag"><i class="ri-fire-line"></i> Popular</span>`:""}
+        </div>
         <h3 class="prompt-title">${escapeHtml(p.title)}</h3>
         <p class="prompt-desc">${escapeHtml(p.description || "")}</p>
-        <div class="prompt-actions">${actionBtn}</div>
-        <div class="prompt-meta" style="margin-top:8px;font-size:.7rem;">
-          <span><i class="ri-eye-line"></i> ${formatNum(p.views||0)}</span><span class="dot"></span><span><i class="ri-file-copy-line"></i> ${formatNum(p.copies||0)}</span>
-          ${p.featured?`<span class="badge badge-featured"><i class="ri-star-line"></i> Featured</span>`:""}
+        <div class="stats">
+          <span><i class="ri-eye-line"></i> ${formatNum(p.views||0)}</span>
+          <span><i class="ri-file-copy-line"></i> ${formatNum(p.copies||0)}</span>
         </div>
-      </div></article>`;
+      </div>
+      <div class="actions">
+        <button class="btn-copy" data-act="copy-free"><i class="ri-file-copy-line"></i> Copy</button>
+        <button class="btn-view" data-act="view"><i class="ri-eye-line"></i> View</button>
+      </div>
+    </article>`;
   }
   function renderCategorySection() {
     hide($("#featuredSection")); hide($("#popularSection")); show($("#latest"));
@@ -1725,6 +1865,8 @@
   }
   function setView(view) {
     State.view = view;
+    // Persist preference so reload keeps the user's grid/list choice
+    try { localStorage.setItem("pm_view", view); } catch (e) {}
     $$(".view-toggle button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
     renderAllSections();
   }
@@ -2387,19 +2529,19 @@
   }
 
   // Helper — given a thumbnail src (data URL or http URL), render the
-  // right element: <video> for video sources, <img> for everything else
-  // (including GIFs — browsers render them as animated <img>).
+  // right element with class="thumb": <video> for video sources, <img> for
+  // everything else (including GIFs — browsers render them as animated <img>).
   function renderThumbElement(src, alt) {
     if (!src) {
       // Placeholder — SVG with first letter of alt
-      return `<img src="${placeholderThumb(alt || "")}" alt="" loading="lazy" />`;
+      return `<img class="thumb" src="${placeholderThumb(alt || "")}" alt="" loading="lazy" />`;
     }
     const isVideoSrc = src.startsWith("data:video/") ||
       /\.(mp4|webm|ogg|mov|m4v|avi)(\?|$)/i.test(src);
     if (isVideoSrc) {
-      return `<video src="${escapeHtml(src)}" autoplay muted loop playsinline></video>`;
+      return `<video class="thumb" src="${escapeHtml(src)}" autoplay muted loop playsinline></video>`;
     }
-    return `<img src="${escapeHtml(src)}" alt="${escapeHtml(alt || "")}" loading="lazy" />`;
+    return `<img class="thumb" src="${escapeHtml(src)}" alt="${escapeHtml(alt || "")}" loading="lazy" />`;
   }
 
   // Helper — resize an image data URL to 100x100 px with cover (center-crop).
